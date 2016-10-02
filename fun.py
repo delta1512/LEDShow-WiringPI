@@ -1,10 +1,17 @@
 import wiringpi2 as wpi
+import sys
 import time
 import random
+
+'''
+Some functions require customised LED assignment to operate normally
+'''
 
 #Change GPIO addresses for LEDs here
 global leds
 leds = [2, 0, 1, 4, 5, 6, 10, 11, 26, 27]
+global ledlen
+ledlen = len(leds)
 
 wpi.wiringPiSetup()
 
@@ -26,9 +33,17 @@ def write(a):
 		wpi.digitalWrite(z, a[y])
 		y = y + 1
 
+#Check for correct length in LED assignment
+def check(a, n):
+	if len(a) != ledlen:
+		print('Incorrect LED assignment in function: ' + n)
+		sys.exit()
+
 #increment from one end to another and then reverse
 def updown():
+	name = 'updown()'
 	binout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	check(binout, name)
 	for x in range(0, 10):
 		binout[x] = 1
 		write(binout)
@@ -41,7 +56,9 @@ def updown():
 
 #increment from one end to another and then decrement from the origin
 def lftright():
+	name = 'lftright()'
 	binout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	check(binout, name)
 	for x in range(1, 11):
 		binout[10 - x] = 1
 		write(binout)
@@ -63,7 +80,7 @@ def rand():
 			mod = i%2
 			binout.append(mod)
 			i = i // 2
-		while len(binout) != 10:
+		while len(binout) != ledlen:
 			binout.append(0)
 		write(binout)
 		time.sleep(0.1)
@@ -71,7 +88,9 @@ def rand():
 	
 #Array is shifted left and right, a value is deleted when it hits either end
 def wiggle():
+	name = 'wiggle()'
 	binout = [0, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+	check(binout, name)
 	while sum(binout) != 0:
 		while binout[9] != 1:
 			binout.insert(0, 0)
@@ -89,7 +108,9 @@ def wiggle():
 	
 #Shifts (with rotation) the array multiple times
 def rotate():
+	name = 'rotate()'
 	binout = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0]
+	check(binout, name)
 	for x in range(0, 20):
 		write(binout)
 		binout.insert(0, binout[9])
@@ -99,7 +120,9 @@ def rotate():
 	
 #Two LEDs from the center travel outwards, bounce off the edges and meet back in the center
 def wave():
+	name = 'wave()'
 	binout = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+	check(binout, name)
 	for x in range(0, 3):
 		a = 5
 		b = 4
