@@ -5,6 +5,8 @@ import random
 
 '''
 Some functions require customised LED assignment to operate normally
+
+***This version is untested***
 '''
 
 #Change GPIO addresses for LEDs here
@@ -29,8 +31,8 @@ def clr():
 #Call the function with an input array of ten 1s or 0s
 def write(a):
 	y = 0
-	for z in leds:
-		wpi.digitalWrite(z, a[y])
+	for x in leds:
+		wpi.digitalWrite(x, a[y])
 		y = y + 1
 
 #Check for correct length in LED assignment
@@ -44,11 +46,11 @@ def updown():
 	name = 'updown()'
 	binout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	check(binout, name)
-	for x in range(0, 10):
+	for x in range(0, ledlen):
 		binout[x] = 1
 		write(binout)
 		time.sleep(0.1)
-	for x in range(1, 11):
+	for x in range(1, ledlen + 1):
 		binout[10 - x] = 0
 		write(binout)
 		time.sleep(0.1)
@@ -59,11 +61,11 @@ def lftright():
 	name = 'lftright()'
 	binout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	check(binout, name)
-	for x in range(1, 11):
+	for x in range(1, ledlen + 1):
 		binout[10 - x] = 1
 		write(binout)
 		time.sleep(0.1)
-	for x in range(1, 11):
+	for x in range(1, ledlen + 1):
 		binout[10 - x] = 0
 		write(binout)
 		time.sleep(0.1)
@@ -92,12 +94,12 @@ def wiggle():
 	binout = [0, 1, 1, 1, 1, 1, 1, 1, 1, 0]
 	check(binout, name)
 	while sum(binout) != 0:
-		while binout[9] != 1:
+		while binout[ledlen - 1] != 1:
 			binout.insert(0, 0)
-			del binout[10]
+			del binout[ledlen]
 			write(binout)
 			time.sleep(0.1)
-		binout[9] = 0
+		binout[ledlen - 1] = 0
 		while binout[0] != 1:
 			binout.insert(10, 0)
 			del binout[0]
@@ -111,10 +113,10 @@ def rotate():
 	name = 'rotate()'
 	binout = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0]
 	check(binout, name)
-	for x in range(0, 20):
+	for x in range(0, ledlen * 2):
 		write(binout)
-		binout.insert(0, binout[9])
-		del binout[10]
+		binout.insert(0, binout[ledlen - 1])
+		del binout[ledlen]
 		time.sleep(0.1)
 	clr()
 	
