@@ -4,9 +4,8 @@ import time
 import random
 
 '''
-Some functions require customised LED assignment to operate normally
-
-***This version is untested***
+Some functions require customised LED assignment to operate normally.
+Append 'binout', in every function that has it, to have the same amount of items as the LEDs you're using
 '''
 
 #Change GPIO addresses for LEDs here
@@ -14,6 +13,8 @@ global leds
 leds = [2, 0, 1, 4, 5, 6, 10, 11, 26, 27]
 global ledlen
 ledlen = len(leds)
+global constp
+constp = ledlen - 1
 
 wpi.wiringPiSetup()
 
@@ -120,50 +121,39 @@ def rotate():
 		time.sleep(0.1)
 	clr()
 	
-#Two LEDs from the center travel outwards, bounce off the edges and meet back in the center
+#Two LEDs from the center travel outwards, bounce off the edges and meet back in the center 3 times
 def wave():
 	name = 'wave()'
 	binout = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
 	check(binout, name)
-	for x in range(0, 3):
-		a = 5
-		b = 4
-		c = 4
-		d = 5
-		for y in range(0, 5):
-			write(binout)
-			binout[a] = 0
-			binout[b] = 0
-			binout[c] = 1
-			binout[d] = 1
-			a = a - 1
-			b = b + 1
-			c = c - 1
-			d = d + 1
-			if d == 10:
-				d = 9
-			time.sleep(0.1)
+	a = -1
+	b = (ledlen / 2)
+	for x in range(0,3):
 		write(binout)
-		a = 0
-		b = 9
-		c = 1
-		d = 8
-		for z in range(0, 5):
-			binout[a] = 0
-			binout[b] = 0
-			binout[c] = 1
-			binout[d] = 1
-			time.sleep(0.1)
+		time.sleep(0.15)
+		while b != constp:
+			b = b + 1
+			a = constp - b
+			binout[a] = 1
+			binout[b] = 1
+			binout[a + 1] = 0
+			binout[b - 1] = 0
 			write(binout)
-			a = a + 1
+			time.sleep(0.15)
+		while b != (ledlen / 2):
 			b = b - 1
-			c = c + 1
-			d = d - 1
+			a = constp - b
+			binout[a] = 1
+			binout[b] = 1
+			binout[a - 1] = 0
+			binout[b + 1] = 0
+			write(binout)
+			time.sleep(0.15)
 	clr()
 
 #Call your functions here 
 #Use the for loop if you wish or use "while True:" statement to loop forever
-for i in range(0, 5):
+for i in range(0, 1):
 	updown()
 	lftright()
 	wiggle()
