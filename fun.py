@@ -3,18 +3,37 @@ import sys
 import time
 import random
 
-'''
-Some functions require customised LED assignment to operate normally.
-Append 'binout', in every function that has it, to have the same amount of items as the LEDs you're using
-'''
-
 #Change GPIO addresses for LEDs here
-global leds
+global leds, ledlen
 leds = [2, 0, 1, 4, 5, 6, 10, 11, 26, 27]
-global ledlen
 ledlen = len(leds)
-global constp
-constp = ledlen - 1
+
+#check for even arrangement
+if ledlen % 2 != 0:
+	print('ERROR: Number of LEDs is uneven: ' + ledlen)
+	sys.exit()
+
+#pattern calculators
+global updownbin, rollbin, wigglebin, rotatebin, wavebin
+updownbin = []
+wigglebin = []
+rotatebin = [0, 0, 1, 1, 1, 1, 0, 0]
+wavebin = [1, 1]
+#updown and roll
+for x in range(0, ledlen): #update names when done
+	updownbin.append(0)
+rollbin = updownbin
+#wiggle
+for x in range(0, ledlen):
+	wigglebin.append(1)
+wigglebin[0], wigglebin[ledlen-1] = 0, 0
+#rotate
+while len(rotatebin) < ledlen:
+	rotatebin.insert(int(round(len(rotatebin) / 2)), 0)
+#wave
+while len(wavebin) < ledlen:
+	wavebin.insert(0, 0)
+	wavebin.insert(len(wavebin), 0)
 
 wpi.wiringPiSetup()
 
@@ -39,13 +58,13 @@ def write(a):
 #Check for correct length in LED assignment
 def check(a, n):
 	if len(a) != ledlen:
-		print('Incorrect LED assignment in function: ' + n)
+		print('ERROR: Incorrect LED assignment in function: ' + n)
 		sys.exit()
 
-#increment from one end to another and then reverse
+#Increment from one end to another and then reverse
 def updown():
 	name = 'updown()'
-	binout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	binout = updownbin
 	check(binout, name)
 	for x in range(0, ledlen):
 		binout[x] = 1
@@ -57,10 +76,10 @@ def updown():
 		time.sleep(0.1)
 	clr()
 
-#increment from one end to another and then decrement from the origin
-def lftright():
-	name = 'lftright()'
-	binout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+#Increment from one end to another and then decrement from the origin
+def roll():
+	name = 'roll()'
+	binout = rollbin
 	check(binout, name)
 	for x in range(1, ledlen + 1):
 		binout[10 - x] = 1
@@ -73,11 +92,12 @@ def lftright():
 	clr()
 
 #Generates a number between 1 and 100 which defines how many times it will loop
-#Another loop (using the first number) generates a number between 0 and 1023 and displays it on the LEDs
+#Another loop (using the first number) generates a number between 0 and power 2
+#of the total bits and displays it on the LEDs
 def rand():
 	n = random.randint(10, 100)
 	for x in range(0, n):
-		i = random.randint(0, 1023)
+		i = random.randint(0, (2**ledlen) - 1)
 		binout = []
 		while i >= 1:
 			mod = i%2
@@ -88,11 +108,11 @@ def rand():
 		write(binout)
 		time.sleep(0.1)
 	clr()
-	
+
 #Array is shifted left and right, a value is deleted when it hits either end
 def wiggle():
 	name = 'wiggle()'
-	binout = [0, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+	binout = wigglebin
 	check(binout, name)
 	while sum(binout) != 0:
 		while binout[ledlen - 1] != 1:
@@ -108,11 +128,11 @@ def wiggle():
 			time.sleep(0.1)
 		binout[0] = 0
 	clr()
-	
+
 #Shifts (with rotation) the array multiple times
 def rotate():
 	name = 'rotate()'
-	binout = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0]
+	binout = rotatebin
 	check(binout, name)
 	for x in range(0, ledlen * 2):
 		write(binout)
@@ -120,15 +140,17 @@ def rotate():
 		del binout[ledlen]
 		time.sleep(0.1)
 	clr()
-	
-#Two LEDs from the center travel outwards, bounce off the edges and meet back in the center 3 times
+
+#Two LEDs from the center travel outwards, bounce off the edges and meet back
+#in the center 3 times
 def wave():
 	name = 'wave()'
-	binout = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
+	binout = wavebin
 	check(binout, name)
+	constp = ledlen - 1
 	a = -1
 	b = (ledlen / 2)
-	for x in range(0,3):
+	for x in range(0, 3):
 		write(binout)
 		time.sleep(0.15)
 		while b != constp:
@@ -151,11 +173,11 @@ def wave():
 			time.sleep(0.15)
 	clr()
 
-#Call your functions here 
+#Call your functions here
 #Use the for loop if you wish or use "while True:" statement to loop forever
 for i in range(0, 1):
 	updown()
-	lftright()
+	roll()
 	wiggle()
 	rotate()
 	wave()
